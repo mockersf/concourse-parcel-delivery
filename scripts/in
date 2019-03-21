@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -exu
+set -o pipefail
+
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
+
+working_dir=${1:-}
+
+if [ -z "$working_dir" ]; then
+  printf '\e[91m[ERROR]\e[0m usage: %s <path/to/source>\n' "$0"
+  exit 1
+fi
+
+TMPDIR=${TMPDIR:-/tmp}
+base=`basename $0`
+payload=$(mktemp "$TMPDIR/${base}.XXXXXX")
+
+cat > $payload <&0
+
+parcel=$(jq -r '.version.parcel //empty' < $payload)
+
+if [ -z "$parcel" ]; then
+  printf '\e[91m[ERROR]\e[0m invalid payload (missing parcel)\n'
+  exit 1
+fi
+
+parcelfile=$(mktemp "$TMPDIR/${base}.XXXXXX")
+jq -r '.version.parcel' < $payload > $parcelfile
+
+tarfile=$(mktemp "$TMPDIR/${base}.XXXXXX").tar.gz
+base64 -D -i $parcelfile -o $tarfile
+
+tar -C $working_dir -xvzf $tarfile
