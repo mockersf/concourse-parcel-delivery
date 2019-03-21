@@ -32,3 +32,5 @@ tarfile=$(mktemp "$TMPDIR/${base}.XXXXXX").tar.gz
 base64 -d $parcelfile > $tarfile
 
 tar -C $working_dir -xvzf $tarfile
+
+cat $payload >&3
