@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -exu
 set -o pipefail
@@ -18,6 +18,7 @@ base=`basename $0`
 payload=$(mktemp "$TMPDIR/${base}.XXXXXX")
 
 cat > $payload <&0
+
 parcel=$(jq -r '.version.parcel //empty' < $payload)
 
 if [ -z "$parcel" ]; then
@@ -26,9 +27,9 @@ if [ -z "$parcel" ]; then
 fi
 
 parcelfile=$(mktemp "$TMPDIR/${base}.XXXXXX")
-echo $parcel | tr '_-_' '\n' > $parcelfile
+jq -r '.version.parcel' < $payload > $parcelfile
 
 tarfile=$(mktemp "$TMPDIR/${base}.XXXXXX").tar.gz
-base64 -d $parcelfile > $tarfile
+base64 -i $parcelfile -o $tarfile
 
 tar -C $working_dir -xvzf $tarfile

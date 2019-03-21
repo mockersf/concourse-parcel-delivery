@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -exu
 set -o pipefail
@@ -18,17 +18,9 @@ base=`basename $0`
 payload=$(mktemp "$TMPDIR/${base}.XXXXXX")
 
 cat > $payload <&0
-parcel=$(jq -r '.version.parcel //empty' < $payload)
-
-if [ -z "$parcel" ]; then
-  printf '\e[91m[ERROR]\e[0m invalid payload (missing parcel)\n'
-  exit 1
-fi
-
-parcelfile=$(mktemp "$TMPDIR/${base}.XXXXXX")
-echo $parcel | tr '_-_' '\n' > $parcelfile
 
 tarfile=$(mktemp "$TMPDIR/${base}.XXXXXX").tar.gz
-base64 -d $parcelfile > $tarfile
 
-tar -C $working_dir -xvzf $tarfile
+tar -cvzf $tarfile $working_dir
+
+echo "{\"version\":{\"date\":\"`date -u`\", \"uuid\":\"`uuidgen`\", \"parcel\":\"`base64 -i $tarfile`\"}}" >&3

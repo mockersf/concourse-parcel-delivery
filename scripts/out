@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -exu
 set -o pipefail
@@ -23,4 +23,4 @@ tarfile=$(mktemp "$TMPDIR/${base}.XXXXXX").tar.gz
 
 tar -cvzf $tarfile $working_dir
 
-echo "{\"version\":{\"date\":\"`date -u`\", \"uuid\":\"`uuidgen`\", \"parcel\":\"`base64 -i $tarfile`\"}}" >&3
+echo "{\"version\":{\"date\":\"`date -u`\", \"uuid\":\"`uuidgen`\", \"parcel\":\"`base64 $tarfile | tr '\n' '_-_'`\"}}" >&3
