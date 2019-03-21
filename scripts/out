@@ -18,9 +18,15 @@ base=`basename $0`
 payload=$(mktemp "$TMPDIR/${base}.XXXXXX")
 
 cat > $payload <&0
+to_archive=$(jq -r '.params.to_archive //empty' < $payload)
+
+if [ -z "$to_archive" ]; then
+  printf '\e[91m[ERROR]\e[0m invalid payload (missing param to_archive)\n'
+  exit 1
+fi
 
 tarfile=$(mktemp "$TMPDIR/${base}.XXXXXX").tar.gz
-
-tar -cvzf $tarfile $working_dir
+cd $working_dir
+tar -cvzf $tarfile $to_archive
 
 echo "{\"version\":{\"date\":\"`date -u`\", \"uuid\":\"`uuidgen`\", \"parcel\":\"`base64 $tarfile | tr '\n' '_-_'`\"}}" >&3
